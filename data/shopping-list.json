@@ -13,5 +13,11 @@
     "item": "Mango",
     "quantity": 22,
     "id": "6dd76608-ca16-4c6b-94e7-80af133cd2d7"
+  },
+  {
+    "item": "Avocado",
+    "quantity": 100,
+    "imageURL": "https://cdn.britannica.com/72/170772-050-D52BF8C2/Avocado-fruits.jpg",
+    "id": "d6a673c4-5df8-45fd-917f-2212ec42d188"
   }
 ]
