@@ -11,14 +11,14 @@ GET http://localhost:3000/shopping-list
 POST ITEM
 POST http://localhost:3000/shopping-list
 {
-  "name": "NNNN",
+  "item": "NNNN",
   "quantity": 5
 }// 
 
 //PUT Update Item
 PUT http://localhost:3000/shopping-list/{id}
 {
-  "name": "",
+  "item": "",
   "quantity": 
 }
 
