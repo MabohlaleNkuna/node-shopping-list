@@ -1,12 +1,17 @@
 [
   {
     "item": "Juice",
-    "quantity": 90,
+    "quantity": 29,
     "id": "32b1685a-7b81-48f1-ad38-cedc960495e9"
   },
   {
     "item": "Bananas",
     "quantity": 2,
     "id": "07436b60-807e-4b18-b1cd-3ff55f02756e"
+  },
+  {
+    "item": "Mango",
+    "quantity": 22,
+    "id": "6dd76608-ca16-4c6b-94e7-80af133cd2d7"
   }
 ]
