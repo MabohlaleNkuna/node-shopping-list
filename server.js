@@ -1,9 +1,11 @@
-const fs = require('fs');
+const fs = require('fs'); 
 const http = require('http');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const path = './data';
 const imagePath = './uploads';
+const busboy = require('busboy');
+const pathLib = require('path');
 
 if (!fs.existsSync(path)) {
   fs.mkdirSync(path);
@@ -40,13 +42,14 @@ const updateShoppingList = (newData) => {
 };
 
 const deleteImageFile = (imageFileName) => {
-  const filePath = `${imagePath}/${imageFileName}`;
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  const imagePathToDelete = `${imagePath}/${imageFileName}`;
+  if (fs.existsSync(imagePathToDelete)) {
+    fs.unlinkSync(imagePathToDelete);
   }
 };
 
 const server = http.createServer((req, res) => {
+
   if (req.method === 'GET' && req.url.startsWith('/uploads/')) {
     const filePath = `.${req.url}`;
     fs.readFile(filePath, (err, data) => {
@@ -64,16 +67,32 @@ const server = http.createServer((req, res) => {
     const shoppingList = readShoppingList();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(shoppingList));
-  } else if (req.method === 'POST' && req.url === '/shopping-list') {
-    upload.single('image')(req, res, (err) => {
-      if (err) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Image upload failed' }));
+  }
+
+  else if (req.method === 'POST' && req.url === '/shopping-list') {
+    let imgPath = "";
+
+    const bb = busboy({ headers: req.headers });
+
+    bb.on("file", (name, file, info) => {
+      if (info.mimeType.includes("image")) {
+        let extension = info.filename.substring(info.filename.indexOf(".") + 1);
+        const imgName = `${uuidv4()}-upload-${Date.now()}.${extension}`;
+        const saveTo = pathLib.join(imagePath, imgName);
+        imgPath = imgName;
+        file.pipe(fs.createWriteStream(saveTo));
       }
+    });
 
-      const { name, quantity } = req.body;
+    let body = {};
+    bb.on("field", (name, val) => {
+      body[name] = val;
+    });
 
-      if (!name || !quantity) {
+    bb.on("close", () => {
+      const { name, category, quantity } = body;
+
+      if (!name || !quantity || !category) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Missing required fields' }));
       }
@@ -82,82 +101,82 @@ const server = http.createServer((req, res) => {
       const newItem = {
         id: uuidv4(),
         name,
+        category,
         quantity,
-        image: req.file ? req.file.filename : null
+        image: imgPath || null,
       };
 
       shoppingList.push(newItem);
       updateShoppingList(shoppingList);
+
       res.writeHead(201, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: 'Item added', id: newItem.id, image: newItem.image }));
     });
-  } else if (req.method === 'PUT' && req.url.startsWith('/shopping-list/')) {
+
+    req.pipe(bb);
+  }
+
+  else if (req.method === 'PUT' && req.url.startsWith('/shopping-list/')) {
     const id = req.url.split('/')[2];
-    let body = '';
+    let imgPath = "";
 
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      if (!body) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Request body is missing' }));
-      }
+    const bb = busboy({ headers: req.headers });
 
-      try {
-        const updatedData = JSON.parse(body);
-        const shoppingList = readShoppingList();
-        const itemIndex = shoppingList.findIndex(item => item.id === id);
-
-        if (itemIndex === -1) {
-          res.writeHead(404, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ message: 'Item not found' }));
-        }
-
-        if (!updatedData.name || !updatedData.quantity) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Missing required fields' }));
-        }
-
-        shoppingList[itemIndex] = { ...shoppingList[itemIndex], ...updatedData };
-        updateShoppingList(shoppingList);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ message: 'Item updated', item: shoppingList[itemIndex] }));
-      } catch (error) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid JSON format' }));
+    bb.on("file", (name, file, info) => {
+      if (info.mimeType.includes("image")) {
+        let extension = info.filename.substring(info.filename.indexOf(".") + 1);
+        const imgName = `${uuidv4()}-upload-${Date.now()}.${extension}`;
+        const saveTo = pathLib.join(imagePath, imgName);
+        imgPath = imgName;
+        file.pipe(fs.createWriteStream(saveTo));
       }
     });
-  } else if (req.method === 'PATCH' && req.url.startsWith('/shopping-list/')) {
-    const id = req.url.split('/')[2];
-    let body = '';
 
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      if (!body) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Request body is missing' }));
-      }
-
-      try {
-        const partialData = JSON.parse(body);
-        const shoppingList = readShoppingList();
-        const itemIndex = shoppingList.findIndex(item => item.id === id);
-
-        if (itemIndex === -1) {
-          res.writeHead(404, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ message: 'Item not found' }));
-        }
-
-        // Only update provided fields
-        shoppingList[itemIndex] = { ...shoppingList[itemIndex], ...partialData };
-        updateShoppingList(shoppingList);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ message: 'Item partially updated', item: shoppingList[itemIndex] }));
-      } catch (error) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid JSON format' }));
-      }
+    let body = {};
+    bb.on("field", (name, val) => {
+      body[name] = val;
     });
-  } else if (req.method === 'DELETE' && req.url.startsWith('/shopping-list/')) {
+
+    bb.on("close", () => {
+      const { name, category, quantity } = body;
+      const shoppingList = readShoppingList();
+      const itemIndex = shoppingList.findIndex(item => item.id === id);
+
+      if (itemIndex === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ message: 'Item not found' }));
+      }
+
+      if (!name || !quantity || !category) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Missing required fields' }));
+      }
+
+      const oldImage = shoppingList[itemIndex].image;
+
+      const updatedItem = {
+        ...shoppingList[itemIndex],
+        name,
+        category,
+        quantity,
+        image: imgPath || oldImage,
+      };
+
+      shoppingList[itemIndex] = updatedItem;
+      updateShoppingList(shoppingList);
+
+      if (imgPath && oldImage) {
+        deleteImageFile(oldImage);
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Item updated', item: updatedItem }));
+    });
+
+    req.pipe(bb);
+  }
+
+  else if (req.method === 'DELETE' && req.url.startsWith('/shopping-list/')) {
     const id = req.url.split('/')[2];
     let shoppingList = readShoppingList();
     const itemToDelete = shoppingList.find(item => item.id === id);
@@ -176,7 +195,9 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ message: 'Item and associated image deleted' }));
     }
-  } else {
+  }
+
+  else {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ message: 'Route not found' }));
   }

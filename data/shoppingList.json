@@ -4,5 +4,19 @@
     "name": "apples",
     "quantity": "9",
     "image": "1727438146838-179826839-Tesla-Landing-Page.png"
+  },
+  {
+    "id": "7d656b85-15ad-49c9-8461-1bcac7872369",
+    "name": "Guava",
+    "category": "fruit",
+    "quantity": "10",
+    "image": "1f50b869-2681-44fd-aa57-d3ffc22901ee-upload-1727636481750.png"
+  },
+  {
+    "id": "939617e8-0ced-4461-b142-978fb920e46b",
+    "name": "spinach",
+    "category": "vegetables",
+    "quantity": "4",
+    "image": "782b6605-53a5-43bb-9dc1-5ab93469b5ae-upload-1727637261159.width-800.png"
   }
 ]
