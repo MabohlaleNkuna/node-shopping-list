@@ -1,26 +1,24 @@
-installed uuid for auto id,s
-npm install uuid
+# Shopping List API with Image Upload
 
-type "node server.js" on terminal to start
+This is a simple Node.js server that allows you to manage a shopping list with CRUD (Create, Read, Update, Delete) operations. It also supports image uploads for each item.
 
-OPEN POSTMAN AND 
+## Features
 
-//GET item
-GET http://localhost:3000/shopping-list
+- **GET** `/shopping-list`: Retrieves the current shopping list.
+- **POST** `/shopping-list`: Adds a new item to the shopping list (with image upload).
+- **PUT** `/shopping-list/:id`: Updates an existing item (with optional image replacement).
+- **DELETE** `/shopping-list/:id`: Deletes an item and its associated image.
+- **GET** `/uploads/:filename`: Accesses uploaded image files.
 
-POST ITEM
-POST http://localhost:3000/shopping-list
-{
-  "item": "NNNN",
-  "quantity": 5
-}// 
+## Requirements
 
-//PUT Update Item
-PUT http://localhost:3000/shopping-list/{id}
-{
-  "item": "",
-  "quantity": 
-}
+- Node.js
+- npm
 
-//DELETE Item:
-DELETE http://localhost:3000/shopping-list/{id}
+## Setup
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/MabohlaleNkuna/node-file-system.git
+   cd node-file-system
