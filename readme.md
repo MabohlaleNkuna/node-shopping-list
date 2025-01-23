@@ -4,7 +4,7 @@ This is a simple Node.js server that allows you to manage a shopping list with C
 
 ## Features
 
-- **GET** `/shopping-list`: Retrieves the current shopping list.
+- **GET** [`/shopping-list`](http://localhost:3000/shopping-list): Retrieves the current shopping list.
 - **POST** `/shopping-list`: Adds a new item to the shopping list (with image upload).
 - **PUT** `/shopping-list/:id`: Updates an existing item (with optional image replacement).
 - **DELETE** `/shopping-list/:id`: Deletes an item and its associated image.
